@@ -1,0 +1,8 @@
+fastapi>=0.115
+uvicorn>=0.32
+pydantic>=2.7
+httpx[socks]>=0.27
+beautifulsoup4>=4.12
+markdown>=3.6
+apscheduler>=3.10
+pytest>=8.0
