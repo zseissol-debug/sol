@@ -8,7 +8,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 
-from . import config, daily_adapter, teardown_adapter
+from . import config, daily_adapter, teardown_adapter, user_adapter
 from .jobs import JobContext, JobRunner
 from .models import (
     Account, AccountBrief, AccountCreate, AccountPatch, Job, NewsIssue, NewsIssueBrief, Report, ReportBrief, ReportPatch, SpokenTextRequest, TeardownRequest, Topic, TopicCreate, TopicOrigin,
@@ -536,6 +536,25 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         account.last_synced = now_iso()
         account.updated_at = now_iso()
         return accounts.save(account)
+
+    @app.post("/api/accounts/{account_id}/sync-real", response_model=Account)
+    def sync_account_real(account_id: str) -> Account:
+        """采集真实的抖音账户数据（需要配置 cookies）"""
+        try:
+            account = accounts.get(account_id)
+        except InvalidId as exc:
+            raise bad_id(exc)
+        if account is None:
+            raise HTTPException(404, "没有这个账号")
+
+        try:
+            # 调用真实数据采集
+            account = user_adapter.sync_user_account(account, account.sec_uid)
+            return accounts.save(account)
+        except FileNotFoundError as e:
+            raise HTTPException(400, f"配置错误: {e}")
+        except Exception as e:
+            raise HTTPException(500, f"采集失败: {e}")
 
     # ------------------------------------------------------------ 前端
 

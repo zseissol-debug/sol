@@ -139,6 +139,14 @@ export default function Peers() {
     await run(() => api.syncAccount(id));
   }
 
+  async function handleSyncReal(id: string) {
+    try {
+      await run(() => api.syncAccountReal(id));
+    } catch (e) {
+      alert(`采集失败: ${(e as Error).message}`);
+    }
+  }
+
   async function handleToggleRole(id: string, currentRole: "teacher" | "peer") {
     const newRole = currentRole === "teacher" ? "peer" : "teacher";
     await run(() => api.patchAccount(id, newRole));
@@ -244,7 +252,10 @@ export default function Peers() {
                 </p>
                 <div style={{ display: "flex", gap: 8 }}>
                   <button className="btn sm" onClick={() => handleSync(a.id)} style={{ flex: 1, fontSize: 12 }}>
-                    同步
+                    Mock 数据
+                  </button>
+                  <button className="btn sm blue" onClick={() => handleSyncReal(a.id)} style={{ flex: 1, fontSize: 12 }}>
+                    真实采集 🎬
                   </button>
                   <button className="btn sm" onClick={() => window.open(a.platform === "douyin" ? `https://www.douyin.com/user/${a.id}` : a.id, "_blank")} style={{ flex: 1, fontSize: 12 }}>
                     主页 ↗

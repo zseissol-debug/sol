@@ -70,4 +70,5 @@ export const api = {
     patch<Account>(`/api/accounts/${id}`, { role }),
   deleteAccount: (id: string) => post<{ deleted: boolean }>(`/api/accounts/${id}`, undefined),
   syncAccount: (id: string) => post<Account>(`/api/accounts/${id}/sync`),
+  syncAccountReal: (id: string) => post<Account>(`/api/accounts/${id}/sync-real`),
 };
