@@ -150,14 +150,14 @@ export default function Peers() {
   }
 
   // 生成爆款列表（合并所有账号的爆款作品）
-  const allWorks: (AccountWork & { accountName: string })[] = [];
+  const allWorks: (AccountWork & { accountName: string; accountId: string })[] = [];
   accounts?.forEach(acct => {
     const works = accountDetails[acct.id] || [];
     const median = (acct as any).likes_median || 10000;
     works.forEach(work => {
       const multiple = work.likes ? work.likes / median : 0;
       if (multiple >= boomThreshold) {
-        allWorks.push({ ...work, accountName: acct.name });
+        allWorks.push({ ...work, accountName: acct.name, accountId: acct.id });
       }
     });
   });
@@ -353,8 +353,15 @@ export default function Peers() {
                     </div>
                   </div>
 
-                  {/* 看报告按钮 */}
-                  <button className="btn sm blue" onClick={() => navigate(`/inbox/reports?work=${work.id}`)}>看报告</button>
+                  {/* 按钮组 */}
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button className="btn sm blue" onClick={() => navigate(`/inbox/reports?work=${work.accountId}:${work.id}`)}>看报告</button>
+                    {work.report_id ? (
+                      <button className="btn sm" style={{ opacity: 0.6 }} disabled>✓ 已拆解</button>
+                    ) : (
+                      <a className="btn sm" href={work.url} target="_blank" rel="noreferrer">看视频</a>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>

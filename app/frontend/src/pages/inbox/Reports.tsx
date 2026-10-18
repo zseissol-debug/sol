@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../api";
 import { notifyChanged } from "../../components/Layout";
 import { fmtClock, fmtDate, fmtFact, fmtTime, labelColor, LABEL_COLORS } from "../../format";
@@ -9,6 +9,8 @@ const STEPS: [string, string][] = [["downloading", "下载"], ["transcribing", "
 
 export default function Reports() {
   const { id } = useParams();
+  const [searchParams] = useSearchParams();
+  const workId = searchParams.get("work");
   const nav = useNavigate();
   const [list, setList] = useState<ReportBrief[] | null>(null);
   const [archived, setArchived] = useState<ReportBrief[]>([]);
@@ -85,6 +87,20 @@ export default function Reports() {
 
   const running = job && (job.state === "queued" || job.state === "running");
   const rows = showArchived ? archived : list ?? [];
+
+  // work 参数模式：为特定作品拆解
+  if (workId) {
+    return (
+      <div>
+        <div style={{ marginBottom: 12 }}>
+          <button className="btn" onClick={() => nav("/inbox/reports")}>← 返回报告列表</button>
+        </div>
+        <WorkTeardown workId={workId} onTeardownStart={setJob} onMsg={setMsg} />
+        {job && <JobStrip job={job} />}
+        {msg && <div className={msg.kind === "ok" ? "note" : "err"} style={{ marginBottom: 12 }}>{msg.text}</div>}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -304,6 +320,48 @@ function Why({ c }: { c: Report["why_boom"][number] }) {
     <div className="why">
       <p>{c.text}</p>
       {c.evidence[0] && <div className="ev"><span className="ts">{fmtClock(c.evidence[0].start)}</span>{c.evidence[0].quote}</div>}
+    </div>
+  );
+}
+
+function WorkTeardown({ workId, onTeardownStart, onMsg }: { workId: string; onTeardownStart: (j: Job) => void; onMsg: (msg: { kind: "ok" | "err"; text: string }) => void }) {
+  const [tearing, setTearing] = useState(false);
+  const [url, setUrl] = useState("");
+
+  async function startTeardown() {
+    if (!url.trim()) {
+      onMsg({ kind: "err", text: "请先输入作品链接" });
+      return;
+    }
+    setTearing(true);
+    try {
+      const job = await api.startTeardown(url, workId);
+      onTeardownStart(job);
+      onMsg({ kind: "ok", text: `已开始为作品拆解…` });
+    } catch (e) {
+      onMsg({ kind: "err", text: (e as Error).message });
+    } finally {
+      setTearing(false);
+    }
+  }
+
+  return (
+    <div className="card pad">
+      <h3>为作品拆解</h3>
+      <p className="muted small" style={{ marginBottom: 12 }}>
+        作品: <code>{workId}</code>
+      </p>
+      <input
+        className="input"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+        placeholder="贴作品的抖音链接（例：https://v.douyin.com/xxxx/）"
+        style={{ marginBottom: 12, width: "100%" }}
+      />
+      <button className="btn primary" onClick={startTeardown} disabled={tearing || !url.trim()}>
+        {tearing ? "拆解中…" : "开始拆解（自动生成报告）"}
+      </button>
+      <p className="muted small" style={{ marginTop: 8 }}>拆解包含：下载视频、转写文字、AI 分析结构和为什么爆</p>
     </div>
   );
 }

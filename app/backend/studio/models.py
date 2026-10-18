@@ -178,6 +178,7 @@ class TopicWithReport(BaseModel):
 
 class TeardownRequest(BaseModel):
     url: str
+    work_id: Optional[str] = None  # 可选：关联的作品 ID（account_id:work_id）
 
 
 # ---------------------------------------------------------------- 老师和对标
@@ -195,6 +196,7 @@ class AccountWork(BaseModel):
     publish_at: str
     likes_multiple: Optional[float] = None  # 点赞倍数（vs 账号中位数）
     work_type: Optional[str] = None  # 互动类型：评论型、点赞型、收藏型、收藏+转发
+    report_id: Optional[str] = None  # 关联的拆解报告 ID
 
 
 class Account(BaseModel):

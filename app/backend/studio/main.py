@@ -270,6 +270,19 @@ def create_app(data_dir: Path | None = None) -> FastAPI:
         def work(ctx: JobContext) -> dict:
             report = teardown_adapter.run_teardown(url, ctx.stage)
             reports.save(report)
+
+            # 如果指定了 work_id，关联报告到作品
+            if req.work_id and ":" in req.work_id:
+                account_id, work_id = req.work_id.split(":", 1)
+                try:
+                    account = accounts.get(account_id)
+                    for w in account.works:
+                        if w.id == work_id:
+                            w.report_id = report.id
+                    accounts.save(account)
+                except Exception:
+                    pass  # 关联失败不影响拆解结果
+
             return {"report_id": report.id}
 
         return runner.submit("teardown", url, work)

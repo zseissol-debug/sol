@@ -47,7 +47,7 @@ export const api = {
   topicFromReport: (id: string) => post<Topic>(`/api/reports/${id}/topic`),
 
   teardownEnv: () => req<EnvCheck[]>("/api/teardown/env"),
-  startTeardown: (url: string) => post<Job>("/api/teardown", { url }),
+  startTeardown: (url: string, workId?: string) => post<Job>("/api/teardown", { url, work_id: workId }),
   job: (id: string) => req<Job>(`/api/jobs/${id}`),
   jobs: () => req<Job[]>("/api/jobs"),
 

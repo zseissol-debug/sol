@@ -52,7 +52,7 @@ export interface Topic {
 export interface AccountWork {
   id: string; title: string; url: string;
   likes: number; collects: number; shares: number; comments: number;
-  publish_at: string; likes_multiple: number | null; work_type: string | null;
+  publish_at: string; likes_multiple: number | null; work_type: string | null; report_id?: string;
 }
 export interface Account {
   id: string; name: string; platform: "douyin" | "xiaohongshu" | "x" | "bilibili";
